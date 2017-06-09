@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+	<style>
+	#contentWrap {
+		display:none;
+	}
+	#grpDiv  {
+		display:none;
+	}
+	</style>
+  </head>
+  <body>
+  
+  <!--username-->
+  <div  id="nickDiv">
+        <h1>Choose a nickname!</h1>
+       <p id="nickError"> </p>
+        <form id="choose-nickname">
+            <input type="text" id="nickname"></input>
+			<input type="submit"></input>
+        </form> 
+    </div>
+<!--end of form-->	
+	<div id="contentWrap">
+    <ul id="messages"></ul>
+    <form id="form">
+      <input id="m" autocomplete="off" /><button>Send</button></br><br/>
+<br/>
+    </form>
+	</div>
+
+	<div id="users"></div>
+	<script src="/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  $(function () {
+    var socket = io();
+	var $nameForm= $('#choose-nickname');
+	var $nameError= $('#nickError');
+	var $nameEnter= $('#nickname');
+	var $users=$('#users');
+    $('#form').submit(function(){
+		console.log('chat message');
+      socket.emit('chat message', $('#m').val());
+      $('#m').val('');
+      return false;
+    });
+	$nameForm.submit( function(e){
+		e.preventDefault();
+		socket.emit('new user', $nameEnter.val(), function(data){
+			console.log('new user');
+			if(data){
+				$('#nickDiv').hide();
+				$('#contentWrap').show();
+			}else{
+				$nickError.html('User name already taken'); 
+			}
+		});
+		$nameEnter.val('');
+	} )
+	;
+
+	socket.on('usernames', function(data){
+	var html='';
+	for(i=0;i<data.length;i++){
+		html+=data[i]+"<br>";console.log(data[i]);
+	}
+	$users.html(html);
+	});
+
+    socket.on('chat message', function(data){
+    $('#messages').append('<b>'+data.user+': </b> '+data.msg +"<br>");
+	});
+  });
+</script>
+  </body>
+</html>
